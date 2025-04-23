@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+    --header-height: 3.5rem;
+    --footer-height: 3.5rem;
+}
