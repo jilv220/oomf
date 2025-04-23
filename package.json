@@ -9,7 +9,6 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate",
-    "deploy": ""
   },
   "dependencies": {
     "@nuxt/ui": "^3.0.2",
