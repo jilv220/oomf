@@ -11,7 +11,7 @@ useHead({
 <template>
     <main>
         <div class="flex min-h-[calc(100vh-var(--header-height)-var(--footer-height))] items-center justify-center">
-            <UCard class="w-[85svw] md:w-[40svw]" variant="subtle">
+            <UCard variant="soft" class="w-[85svw] md:w-[40svw] border-b-1 border-r-1 border-[var(--ui-border)]">
                 <UrlSubmitForm />
             </UCard>
         </div>

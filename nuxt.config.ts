@@ -6,7 +6,7 @@ export default defineNuxtConfig({
 	modules: ["@nuxt/ui", "@nuxthub/core"],
 	css: ["~/assets/css/main.css"],
 	ui: {
-		colorMode: true,
+		colorMode: false,
 	},
 	devtools: { enabled: true },
 	experimental: {

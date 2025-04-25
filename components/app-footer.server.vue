@@ -4,15 +4,17 @@ const year = new Date().getFullYear()
 </script>
 
 <template>
-    <footer class="border-t py-6 md:px-8 md:py-0">
+    <footer class="bg-[var(--ui-bg)] border-t border-t-[var(--ui-border)]
+    shadow-xs
+    py-6 md:px-8 md:py-0">
         <div
             class="container flex flex-col items-center justify-between gap-4 px-4 md:h-[var(--footer-height)] md:flex-row md:justify-end md:px-8">
             <div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-                <p class="text-center text-muted-foreground text-sm leading-loose md:text-right">
+                <p class="text-center  text-sm leading-loose md:text-right">
                     © {{ year }} {{ appName }}. The source code is available
                     on
                     <ULink to="https://github.com/jilv220/oomf" target="_blank" rel="noreferrer"
-                        class="font-medium underline underline-offset-4">
+                        class="text-muted font-medium underline underline-offset-4">
                         GitHub</ULink>
                     .
                 </p>

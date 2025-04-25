@@ -10,7 +10,7 @@ useHead({
         <div class="container max-w-4xl px-4 mx-auto">
             <h1 class="text-3xl font-bold mb-6">About OomF</h1>
 
-            <UCard class="mb-8">
+            <UCard variant="subtle" class="mb-8">
                 <div class="prose dark:prose-invert max-w-none">
                     <h2>What is OomF?</h2>
                     <p>
@@ -77,3 +77,18 @@ useHead({
         </div>
     </main>
 </template>
+
+<style scoped>
+li {
+    list-style-type: ">";
+    color: var(--color-primary)
+}
+
+li>strong {
+    color: var(--color-primary)
+}
+
+li::marker {
+    color: var(--color-primary)
+}
+</style>

@@ -114,20 +114,19 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             Use only letters, numbers, and hyphens
         </UFormField> -->
 
-        <UButton class="w-full cursor-pointer" type="submit" :loading="isLoading" :disabled="isLoading">
+        <UButton class="w-full" type="submit" :loading="isLoading" :disabled="isLoading">
             {{ isLoading ? 'Shortening...' : 'Shorten URL' }}
         </UButton>
 
         <!-- Display shortened URL -->
-        <UCard v-if="success" class="mt-6 bg-gray-50 dark:bg-gray-800">
+        <UCard v-if="success" class="mt-6">
             <div class="flex flex-col gap-2">
                 <h3 class="text-lg font-medium">Your shortened URL:</h3>
                 <div class="flex w-full">
                     <UInput class="flex-grow" readonly :model-value="shortUrl" />
-                    <UButton color="primary" class="ml-2 cursor-pointer" icon="i-heroicons-clipboard"
-                        @click="copyToClipboard" />
+                    <UButton color="primary" class="ml-2" icon="i-heroicons-clipboard" @click="copyToClipboard" />
                 </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                <p class="text-sm text-muted mt-2">
                     Share this URL to redirect people to your original link
                 </p>
             </div>
