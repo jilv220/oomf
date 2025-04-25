@@ -20,6 +20,9 @@ importers:
       drizzle-orm:
         specifier: ^0.42.0
         version: 0.42.0(@cloudflare/workers-types@4.20250423.0)
+      neverthrow:
+        specifier: ^8.2.0
+        version: 8.2.0
       nuxt:
         specifier: ^3.16.2
         version: 3.16.2(@biomejs/biome@1.9.4)(@netlify/blobs@8.2.0)(@parcel/watcher@2.5.1)(@types/node@22.14.1)(db0@0.3.2(drizzle-orm@0.42.0(@cloudflare/workers-types@4.20250423.0)))(drizzle-orm@0.42.0(@cloudflare/workers-types@4.20250423.0))(ioredis@5.6.1)(lightningcss@1.29.2)(magicast@0.3.5)(rollup@4.40.0)(terser@5.39.0)(typescript@5.8.3)(vite@6.3.2(@types/node@22.14.1)(jiti@2.4.2)(lightningcss@1.29.2)(terser@5.39.0)(yaml@2.7.1))(yaml@2.7.1)
@@ -3605,6 +3608,10 @@ packages:
   netlify@13.3.5:
     resolution: {integrity: sha512-Nc3loyVASW59W+8fLDZT1lncpG7llffyZ2o0UQLx/Fr20i7P8oP+lE7+TEcFvXj9IUWU6LjB9P3BH+iFGyp+mg==}
     engines: {node: ^14.16.0 || >=16.0.0}
+
+  neverthrow@8.2.0:
+    resolution: {integrity: sha512-kOCT/1MCPAxY5iUV3wytNFUMUolzuwd/VF/1KCx7kf6CutrOsTie+84zTGTpgQycjvfLdBBdvBvFLqFD2c0wkQ==}
+    engines: {node: '>=18'}
 
   nitro-cloudflare-dev@0.2.2:
     resolution: {integrity: sha512-aZfNTVdgXPQeAmXW0Tw8hm3usAHr4qVG4Bg3WhHBGeZYuXr9OyT04Ztb+STkMzhyaXvfMHViAaPUPg06iAYqag==}
@@ -8662,6 +8669,10 @@ snapshots:
       node-fetch: 3.3.2
       p-wait-for: 5.0.2
       qs: 6.14.0
+
+  neverthrow@8.2.0:
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu': 4.40.0
 
   nitro-cloudflare-dev@0.2.2:
     dependencies:

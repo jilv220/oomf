@@ -58,3 +58,20 @@ export function generateRandomCode(length = 6): string {
 	}
 	return result;
 }
+
+export const generateTimestampedRandomCode = () => {
+	const now = Date.now();
+	const randomSuffix = Math.floor(Math.random() * 10000);
+	const idBase = now * 10000 + randomSuffix;
+
+	let shortCode = encodeBase62(idBase);
+
+	// Ensure the code is at least 6 characters
+	// If too long, use a random code instead
+	if (shortCode.length < 6) {
+		shortCode = shortCode.padStart(6, "0");
+	} else if (shortCode.length > 8) {
+		shortCode = generateRandomCode();
+	}
+	return shortCode;
+};

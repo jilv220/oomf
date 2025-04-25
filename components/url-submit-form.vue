@@ -69,7 +69,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     shortUrl.value = ''
 
     try {
-        const { data, error } = await $fetch('/api/shorten', {
+        const { shortCode } = await $fetch('/api/shorten', {
             method: 'POST',
             body: {
                 longUrl: state.longUrl,
@@ -77,18 +77,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             }
         })
 
-        if (error) {
-            toast.add({
-                title: 'Error',
-                description: error,
-                color: 'error',
-                duration: 3000
-            })
-            return
-        }
-
         // Show success message
-        shortUrl.value = `${origin.value}/${data.shortCode}`
+        shortUrl.value = `${origin.value}/${shortCode}`
         success.value = true
 
     } catch (error) {

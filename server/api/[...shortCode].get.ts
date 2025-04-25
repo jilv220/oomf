@@ -1,8 +1,6 @@
-// server/api/[shortCode].get.ts
 import { eq, tables, useDrizzle } from "../utils/drizzle";
 
 export default defineEventHandler(async (event) => {
-	// Get the short code from the URL
 	const shortCode = getRouterParam(event, "shortCode");
 
 	if (!shortCode) {
