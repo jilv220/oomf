@@ -1,4 +1,5 @@
 import { drizzle } from "drizzle-orm/d1";
+
 export { sql, eq, and, or } from "drizzle-orm";
 
 import * as schema from "../database/schema";
@@ -9,6 +10,6 @@ export function useDrizzle() {
 	return drizzle(hubDatabase(), { schema });
 }
 
-export type Urls = typeof schema.urls.$inferSelect;
+export type Url = typeof schema.url.$inferSelect;
 
 export type D1 = ReturnType<typeof useDrizzle>;

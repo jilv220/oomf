@@ -7,9 +7,8 @@ export default defineNuxtPlugin({
 		);
 
 		if (import.meta.server) {
-			const appName = useAppConfig().appName;
-			const token = useCookie(`${appName}.session_token`);
-			sessionToken.value = token.value;
+			const userSession = await useAuth().fetchSession();
+			sessionToken.value = userSession?.session.token || null;
 		}
 
 		if (import.meta.client) {
