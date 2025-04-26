@@ -22,11 +22,11 @@ export default defineEventHandler(async (event) => {
 	let shortCode = customCode || generateTimestampedRandomCode();
 	const db = useDrizzle();
 
-	const existingUrlP = db.query.urls.findFirst({
-		where: (urls, { eq }) => eq(urls.longUrl, longUrl),
+	const existingUrlP = db.query.url.findFirst({
+		where: (url, { eq }) => eq(url.longUrl, longUrl),
 	});
-	const existingCodeP = db.query.urls.findFirst({
-		where: (urls, { eq }) => eq(urls.shortCode, shortCode!),
+	const existingCodeP = db.query.url.findFirst({
+		where: (url, { eq }) => eq(url.shortCode, shortCode!),
 	});
 	const [existingUrl, existingCode] = await Promise.all([
 		existingUrlP,
@@ -59,7 +59,7 @@ export default defineEventHandler(async (event) => {
 
 	// Insert new URL into database
 	await db
-		.insert(tables.urls)
+		.insert(tables.url)
 		.values({
 			longUrl,
 			shortCode,

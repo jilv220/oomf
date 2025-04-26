@@ -22,6 +22,20 @@
       "when": 1745641023134,
       "tag": "0002_exotic_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1745699376667,
+      "tag": "0003_simple_jane_foster",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1745699449136,
+      "tag": "0004_dapper_kid_colt",
+      "breakpoints": true
     }
   ]
 }

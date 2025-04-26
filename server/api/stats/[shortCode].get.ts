@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
 	const db = useDrizzle();
 
 	// Look up the URL in the database
-	const url = await db.query.urls.findFirst({
-		where: (urls, { eq }) => eq(urls.shortCode, shortCode),
+	const url = await db.query.url.findFirst({
+		where: (url, { eq }) => eq(url.shortCode, shortCode),
 	});
 
 	if (!url) {

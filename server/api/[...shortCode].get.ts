@@ -14,8 +14,8 @@ export default defineEventHandler(async (event) => {
 		const db = useDrizzle();
 
 		// Look up the URL in the database
-		const url = await db.query.urls.findFirst({
-			where: (urls, { eq }) => eq(urls.shortCode, shortCode),
+		const url = await db.query.url.findFirst({
+			where: (url, { eq }) => eq(url.shortCode, shortCode),
 		});
 
 		if (!url) {
@@ -27,12 +27,12 @@ export default defineEventHandler(async (event) => {
 
 		// Increment the click count
 		await db
-			.update(tables.urls)
+			.update(tables.url)
 			.set({
 				clicks: url.clicks + 1,
 				updatedAt: new Date(),
 			})
-			.where(eq(tables.urls.shortCode, shortCode));
+			.where(eq(tables.url.shortCode, shortCode));
 
 		// Redirect to the long URL
 		return sendRedirect(event, url.longUrl);

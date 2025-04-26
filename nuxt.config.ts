@@ -11,6 +11,7 @@ export default defineNuxtConfig({
 	devtools: { enabled: true },
 	experimental: {
 		componentIslands: true,
+		asyncContext: true,
 	},
 	hub: {
 		database: true,

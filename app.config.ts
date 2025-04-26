@@ -1,5 +1,5 @@
 export default defineAppConfig({
-	appName: "OomF",
+	appName: process.env.APP_NAME || "OomF",
 	ui: {
 		colors: {
 			primary: "jade",
