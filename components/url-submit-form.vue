@@ -1,26 +1,13 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { H3Error } from "h3"
 import { P, match } from 'ts-pattern';
-import { z } from 'zod';
+import { type ShortenForm, shortenFormSchema } from '~/shared/shorten';
 
-const schema = z.object({
-    longUrl: z
-        .string()
-        .min(1, "URL is required")
-        .url("Please enter a valid URL"),
-    customCode: z
-        .string()
-        .max(20, "Custom code must be less than 20 characters")
-        .regex(/^[a-zA-Z0-9-_]+$/, "Only letters, numbers, hyphens and underscores are allowed")
-        .optional(),
-});
-type Schema = z.infer<typeof schema>;
-
-const state = reactive({
+const initialState = {
     longUrl: '',
     customCode: undefined,
-})
+}
+const state = reactive({ ...initialState })
 
 const toast = useToast()
 const isLoading = ref(false)
@@ -47,6 +34,10 @@ function toggleCustomCode() {
     }
 }
 
+const resetForm = () => {
+    Object.assign(state, initialState)
+}
+
 async function copyToClipboard(text: string) {
     try {
         await navigator.clipboard.writeText(text)
@@ -67,7 +58,7 @@ async function copyToClipboard(text: string) {
 }
 
 // Submit form to create short URL
-async function onSubmit(event: FormSubmitEvent<Schema>) {
+async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
     isLoading.value = true
     success.value = false
     shortUrl.value = ''
@@ -91,15 +82,17 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         console.error('Error shortening URL:', error)
 
         match(error)
-            .with(P.instanceOf(H3Error), (e) => e.statusCode === 409, () => {
-                toast.add({
-                    title: 'Custom code unavailable',
-                    description: 'This custom code is already in use. Please try another one.',
-                    color: 'error',
-                    duration: 3000
+            .with(P.shape({ statusCode: 409 }),
+                () => {
+                    toast.add({
+                        title: 'Custom code unavailable',
+                        description: 'This custom code is already in use. Please try another one.',
+                        color: 'error',
+                        duration: 3000
+                    })
                 })
-            })
             .with(P.instanceOf(Error), () => {
+                console.log("wtf")
                 toast.add({
                     title: 'Error',
                     description: 'An unexpected error occurred. Please try again.',
@@ -107,6 +100,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     duration: 3000
                 })
             })
+
+        resetForm()
     } finally {
         isLoading.value = false
     }
@@ -114,7 +109,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-    <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+    <UForm :schema="shortenFormSchema" :state="state" class="space-y-4" @submit="onSubmit">
         <UFormField size="xl" :ui="{
             error: 'text-sm'
         }" label="Enter a long URL to shorten" name="longUrl">
@@ -129,7 +124,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
         <UFormField v-if="showCustomCodeInput" class="w-full" label="Custom code (optional)" name="customCode">
             <UInput class="w-full mt-2" v-model="state.customCode" placeholder="my-custom-code" />
-            <span class="text-xs text-gray-500">Use only letters, numbers, hyphens and underscores</span>
+            <span class="text-xs text-dimmed">Use only letters, numbers, hyphens and underscores</span>
         </UFormField>
 
         <UButton class="w-full" type="submit" :loading="isLoading" :disabled="isLoading">
@@ -155,14 +150,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                         <UButton color="primary" class="ml-2" icon="i-heroicons-clipboard"
                             @click="copyToClipboard(statsUrl)" />
                     </div>
-                    <p class="text-sm text-dimmed mt-1">
+                    <p class="text-xs text-dimmed mt-1">
                         Use this link to track clicks and view statistics
                     </p>
                 </div>
 
                 <div class="flex gap-2 mt-2">
-                    <UButton to="/" color="primary" variant="outline" block
-                        @click="success = false; state.longUrl = ''">
+                    <UButton to="/" color="primary" variant="outline" block @click="success = false; resetForm()">
                         Create Another URL
                     </UButton>
                     <UButton :to="statsUrl" color="primary" block>

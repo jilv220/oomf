@@ -1,5 +1,3 @@
-// server/utils/base62.ts
-
 /**
  * Base62 character set for URL shortening (a-z, A-Z, 0-9)
  */
@@ -59,19 +57,17 @@ export function generateRandomCode(length = 6): string {
 	return result;
 }
 
-export const generateTimestampedRandomCode = () => {
-	const now = Date.now();
-	const randomSuffix = Math.floor(Math.random() * 10000);
-	const idBase = now * 10000 + randomSuffix;
-
+export const generateTimestampedRandomCode = (length = 6): string => {
+	const timestamp = Math.floor(Date.now() / 1000); // Seconds since epoch
+	const randomPart = Math.floor(Math.random() * 10000); // 4-digit random
+	const idBase = timestamp * 10000 + randomPart;
 	let shortCode = encodeBase62(idBase);
 
-	// Ensure the code is at least 6 characters
-	// If too long, use a random code instead
-	if (shortCode.length < 6) {
-		shortCode = shortCode.padStart(6, "0");
-	} else if (shortCode.length > 8) {
-		shortCode = generateRandomCode();
+	// Truncate or pad to desired length
+	if (shortCode.length > length) {
+		shortCode = shortCode.slice(0, length);
+	} else if (shortCode.length < length) {
+		shortCode = generateRandomCode(length); // Fallback to random
 	}
 	return shortCode;
 };

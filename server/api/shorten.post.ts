@@ -1,24 +1,14 @@
 import * as R from "remeda";
-import { z } from "zod";
-import {
-	encodeBase62,
-	generateRandomCode,
-	generateTimestampedRandomCode,
-} from "../utils/base62";
+import { match } from "ts-pattern";
+import { shortenBodySchema } from "~/shared/shorten";
+import { Shorten } from "../shorten";
+import { generateTimestampedRandomCode } from "../utils/base62";
 import { tables, useDrizzle } from "../utils/drizzle";
-
-// Define validation schema for the request
-const urlSchema = z.object({
-	longUrl: z
-		.string()
-		.url("Please provide a valid URL")
-		.min(1, "URL is required"),
-	customCode: z.string().optional(),
-});
 
 export default defineEventHandler(async (event) => {
 	const body = await readBody(event);
-	const parsedBody = urlSchema.safeParse(body);
+	const parsedBody = shortenBodySchema.safeParse(body);
+
 	if (parsedBody.error) {
 		throw createError({
 			statusCode: 422,
@@ -26,52 +16,62 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	const { longUrl, customCode } = parsedBody.data;
-
-	const db = useDrizzle();
-
-	// Check if URL already exists in database
-	const existingUrl = await db.query.urls.findFirst({
-		where: (urls, { eq }) => eq(urls.longUrl, longUrl),
-	});
-	if (existingUrl) return R.pick(existingUrl, ["shortCode", "longUrl"]);
+	const { longUrl, customCode, expiresInDays } = parsedBody.data;
 
 	// Generate short code - either use custom code or generate one
-	let shortCode = customCode;
-	if (!shortCode) shortCode = generateTimestampedRandomCode();
+	let shortCode = customCode || generateTimestampedRandomCode();
+	const db = useDrizzle();
 
-	// Check if short code already exists
-	const existingCode = await db.query.urls.findFirst({
+	const existingUrlP = db.query.urls.findFirst({
+		where: (urls, { eq }) => eq(urls.longUrl, longUrl),
+	});
+	const existingCodeP = db.query.urls.findFirst({
 		where: (urls, { eq }) => eq(urls.shortCode, shortCode!),
 	});
+	const [existingUrl, existingCode] = await Promise.all([
+		existingUrlP,
+		existingCodeP,
+	]);
 
-	if (existingCode) {
-		// If code exists and custom code was requested, return error
-		if (customCode) {
-			throw createError({
-				statusCode: 409,
-				message: "Custom code already in use",
-			});
-		}
+	match([existingCode, customCode])
+		.when(
+			([ec, cc]) => ec && cc,
+			() => {
+				throw createError({
+					statusCode: 409,
+					message: "Custom code already in use",
+				});
+			},
+		)
+		.when(
+			([ec, _]) => ec,
+			() => {
+				shortCode = generateTimestampedRandomCode();
+			},
+		);
+	// only cc && nether, just fall through
 
-		// Otherwise, generate a new random code
-		shortCode = generateRandomCode();
-	}
+	if (existingUrl && !customCode)
+		return R.pick(existingUrl, ["shortCode", "longUrl", "expiresAt"]);
+
+	const createdAt = new Date();
+	const expiresAt = Shorten.getExpirationDate(createdAt, expiresInDays);
 
 	// Insert new URL into database
-	const now = new Date();
 	await db
 		.insert(tables.urls)
 		.values({
 			longUrl,
 			shortCode,
-			createdAt: now,
-			updatedAt: now,
+			createdAt,
+			updatedAt: createdAt,
+			expiresAt,
 		})
 		.returning();
 
 	return {
 		shortCode,
 		longUrl,
+		expiresAt,
 	};
 });
