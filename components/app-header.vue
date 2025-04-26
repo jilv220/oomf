@@ -17,9 +17,6 @@ const { appName } = useAppConfig()
             </div>
 
             <div class="flex items-center space-x-4">
-                <UButton variant="ghost" color="neutral" to="/about" class="flex">
-                    About
-                </UButton>
             </div>
         </div>
     </header>

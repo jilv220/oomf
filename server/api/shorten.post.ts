@@ -17,10 +17,8 @@ const urlSchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-	// Parse and validate request body
 	const body = await readBody(event);
 	const parsedBody = urlSchema.safeParse(body);
-
 	if (parsedBody.error) {
 		throw createError({
 			statusCode: 422,
