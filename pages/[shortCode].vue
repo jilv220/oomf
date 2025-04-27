@@ -6,11 +6,15 @@ definePageMeta({
 const route = useRoute();
 const shortCode = route.params.shortCode as string;
 
-// Set SEO metadata
 useSeoMeta({
-    title: 'Redirecting...',
-    robots: 'noindex, nofollow',
-});
+    title: 'Shortened URL',
+    description: 'A shortened URL created with our service.',
+    ogTitle: 'Shortened URL',
+    ogDescription: 'A shortened URL created with our service.',
+    ogUrl: `https://${useRuntimeConfig().public.baseUrl}/${shortCode}`,
+    ogType: 'website',
+    robots: "noindex"
+})
 
 // This page doesn't actually render - the middleware handles the redirect
 </script>

@@ -1,4 +1,5 @@
 import * as R from "remeda";
+
 import { match } from "ts-pattern";
 import { shortenBodySchema } from "~/shared/shorten";
 import { Shorten } from "../shorten";
@@ -51,8 +52,9 @@ export default defineEventHandler(async (event) => {
 		);
 	// only cc && nether, just fall through
 
-	if (existingUrl && !customCode)
+	if (existingUrl && !customCode) {
 		return R.pick(existingUrl, ["shortCode", "longUrl", "expiresAt"]);
+	}
 
 	const createdAt = new Date();
 	const expiresAt = Shorten.getExpirationDate(createdAt, expiresInDays);
