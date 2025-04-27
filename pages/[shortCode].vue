@@ -5,13 +5,14 @@ definePageMeta({
 
 const route = useRoute();
 const shortCode = route.params.shortCode as string;
+const origin = useOrigin()
 
 useSeoMeta({
     title: 'Shortened URL',
     description: 'A shortened URL created with our service.',
     ogTitle: 'Shortened URL',
     ogDescription: 'A shortened URL created with our service.',
-    ogUrl: `https://${useRuntimeConfig().public.baseUrl}/${shortCode}`,
+    ogUrl: `https://${origin}/${shortCode}`,
     ogType: 'website',
     robots: "noindex"
 })
