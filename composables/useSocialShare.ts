@@ -30,13 +30,6 @@ const platforms: SocialPlatform[] = [
 		usePopup: true,
 	},
 	{
-		label: "LinkedIn",
-		icon: "fa6-brands:linkedin",
-		generateUrl: (url) =>
-			`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-		usePopup: true,
-	},
-	{
 		label: "WhatsApp",
 		icon: "fa6-brands:whatsapp",
 		generateUrl: (url, text) =>

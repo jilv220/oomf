@@ -7,6 +7,7 @@ const route = useRoute();
 const shortCode = route.params.shortCode as string;
 const origin = useOrigin()
 
+// Is this actually doing anything??
 useSeoMeta({
     title: 'Shortened URL',
     description: 'A shortened URL created with our service.',
