@@ -2,6 +2,7 @@
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useClipboard } from '@vueuse/core'
 import { P, match } from 'ts-pattern'
+import { generateQR } from '~/shared/generateQR'
 import { type ShortenForm, shortenFormSchema } from '~/shared/shorten'
 
 const initialState = {
@@ -25,7 +26,7 @@ const shortCode = ref('') // Store shortCode for file naming
 const popupOptions = 'width=600,height=400,toolbar=no,menubar=no,scrollbars=yes,resizable=yes'
 const { items: socialItems } = useSocialShare({
     url: shortUrl,
-    text: 'Check out this shortened URL!',
+    text: 'Share this link with OomF!',
     popupOptions
 })
 
@@ -67,9 +68,9 @@ async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
             }
         })
 
-        shortCode.value = response.shortCode // Store shortCode
+        shortCode.value = response.shortCode
         shortUrl.value = `${origin.value}/${shortCode.value}`
-        qrDataUrl.value = `/api/qr/${shortCode.value}`
+        qrDataUrl.value = await generateQR(shortUrl.value)
         statsUrl.value = `${origin.value}/stats/${shortCode.value}`
         success.value = true
 
@@ -154,7 +155,7 @@ async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
 
                         <template #content>
                             <div class="flex flex-col items-center gap-2 p-2">
-                                <img width="110px" height="110px" :src="qrDataUrl" alt="QR Code to shortened URL" />
+                                <NuxtImg width="110px" height="110px" :src="qrDataUrl" alt="QR Code to shortened URL" />
                                 <UButton size="sm" icon="i-lucide-download" class="w-full" @click="downloadQR">
                                     Download
                                 </UButton>
