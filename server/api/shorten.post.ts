@@ -1,79 +1,108 @@
 import * as R from "remeda";
 
+import type { User } from "better-auth";
 import { match } from "ts-pattern";
+import { TOO_MANY_SHORTENED_URLS } from "~/shared/errorCodes";
 import { shortenBodySchema } from "~/shared/shorten";
 import { Shorten } from "../shorten";
-import { generateTimestampedRandomCode } from "../utils/base62";
-import { tables, useDrizzle } from "../utils/drizzle";
+import { requireAuth } from "../utils/auth";
+import { useDrizzle } from "../utils/drizzle";
 
-export default defineEventHandler(async (event) => {
-	const body = await readBody(event);
-	const parsedBody = shortenBodySchema.safeParse(body);
+export default defineEventHandler({
+	onRequest: [requireAuth],
+	handler: async (event) => {
+		const body = await readBody(event);
+		const parsedBody = shortenBodySchema.safeParse(body);
 
-	if (parsedBody.error) {
-		throw createError({
-			statusCode: 422,
-			message: JSON.stringify(parsedBody.error.format()),
+		if (parsedBody.error) {
+			throw createError({
+				statusCode: 422,
+				message: JSON.stringify(parsedBody.error.format()),
+			});
+		}
+
+		const { longUrl, customCode, expiresInDays } = parsedBody.data;
+		const db = useDrizzle();
+		const user: User = event.context.auth.user;
+		const userId = user.id;
+
+		const existingUrls = await db.query.url.findMany({
+			where: (url, { eq, and }) =>
+				and(eq(url.longUrl, longUrl), eq(url.userId, userId)),
 		});
-	}
 
-	const { longUrl, customCode, expiresInDays } = parsedBody.data;
+		const res = await match([existingUrls.length !== 0, customCode])
+			.when(
+				([eu, cc]) => eu && !cc,
+				() => {
+					// return eu
+					return R.pipe(
+						existingUrls,
+						R.map(R.pick(["shortCode", "longUrl", "expiresAt"])),
+					);
+				},
+			)
+			.when(
+				([eu, cc]) => !eu && !cc,
+				async () => {
+					const shortCode = await Shorten.generateUniqueShortCode();
+					const newUrl = await Shorten.insertUrl(
+						{
+							longUrl,
+							shortCode,
+							userId,
+						},
+						expiresInDays,
+					);
 
-	// Generate short code - either use custom code or generate one
-	let shortCode = customCode || generateTimestampedRandomCode();
-	const db = useDrizzle();
+					return [
+						{
+							shortCode: newUrl.shortCode,
+							longUrl: newUrl.longUrl,
+							expiresAt: newUrl.expiresAt,
+						},
+					];
+				},
+			)
+			.otherwise(async ([_eu, cc]) => {
+				if (existingUrls.length > 1) {
+					throw createError({
+						statusCode: 409,
+						data: {
+							errorCode: TOO_MANY_SHORTENED_URLS,
+						},
+					});
+				}
 
-	const existingUrlP = db.query.url.findFirst({
-		where: (url, { eq }) => eq(url.longUrl, longUrl),
-	});
-	const existingCodeP = db.query.url.findFirst({
-		where: (url, { eq }) => eq(url.shortCode, shortCode!),
-	});
-	const [existingUrl, existingCode] = await Promise.all([
-		existingUrlP,
-		existingCodeP,
-	]);
-
-	match([existingCode, customCode])
-		.when(
-			([ec, cc]) => ec && cc,
-			() => {
-				throw createError({
-					statusCode: 409,
-					message: "Custom code already in use",
+				const customCodeExists = await db.query.url.findFirst({
+					where: (url, { eq }) => eq(url.shortCode, cc!),
 				});
-			},
-		)
-		.when(
-			([ec, _]) => ec,
-			() => {
-				shortCode = generateTimestampedRandomCode();
-			},
-		);
-	// only cc && nether, just fall through
 
-	if (existingUrl && !customCode) {
-		return R.pick(existingUrl, ["shortCode", "longUrl", "expiresAt"]);
-	}
+				if (customCodeExists) {
+					throw createError({
+						statusCode: 409,
+						statusMessage: "Custom code already in use",
+					});
+				}
 
-	const createdAt = new Date();
-	const expiresAt = Shorten.getExpirationDate(createdAt, expiresInDays);
+				const newUrl = await Shorten.insertUrl(
+					{
+						longUrl,
+						shortCode: cc!,
+						userId,
+					},
+					expiresInDays,
+				);
 
-	// Insert new URL into database
-	await db
-		.insert(tables.url)
-		.values({
-			longUrl,
-			shortCode,
-			createdAt,
-			updatedAt: createdAt,
-			expiresAt,
-		})
-		.returning();
+				return [
+					{
+						shortCode: newUrl.shortCode,
+						longUrl: newUrl.longUrl,
+						expiresAt: newUrl.expiresAt,
+					},
+				];
+			});
 
-	return {
-		shortCode,
-		longUrl,
-		expiresAt,
-	};
+		return res;
+	},
 });

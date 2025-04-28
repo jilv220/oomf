@@ -1,51 +1,49 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { useClipboard } from '@vueuse/core'
 import { P, match } from 'ts-pattern'
+import { TOO_MANY_SHORTENED_URLS } from '~/shared/errorCodes'
 import { generateQR } from '~/shared/generateQR'
 import { type ShortenForm, shortenFormSchema } from '~/shared/shorten'
 
 const initialState = {
     longUrl: '',
-    customCode: undefined,
+    customCode: '',
 }
 const state = reactive({ ...initialState })
 
 const toast = useToast()
 const isLoading = ref(false)
 
+const shortCodes = ref<Array<string>>([])
 const origin = useOrigin()
-const shortUrl = ref('')
-const { copy, copied } = useClipboard({ source: shortUrl, copiedDuring: 2000 })
+const shortUrls = ref<Array<string>>([])
 
 const statsUrl = ref('')
 const qrDataUrl = ref('')
 const success = ref(false)
-const shortCode = ref('') // Store shortCode for file naming
 
 const popupOptions = 'width=600,height=400,toolbar=no,menubar=no,scrollbars=yes,resizable=yes'
 const { items: socialItems } = useSocialShare({
-    url: shortUrl,
+    url: toRef(() => shortUrls.value[0]),
     text: 'Share this link with OomF!',
     popupOptions
 })
 
 const resetForm = () => {
     Object.assign(state, initialState)
-    shortUrl.value = ''
     statsUrl.value = ''
     qrDataUrl.value = ''
-    shortCode.value = ''
+    shortCodes.value = []
     success.value = false
 }
 
 // Download QR code with custom file name
 function downloadQR() {
-    if (!qrDataUrl.value || !shortCode.value) return
+    if (!qrDataUrl.value || shortCodes.value.length === 0) return
 
     const link = document.createElement('a')
     link.href = qrDataUrl.value
-    link.download = `${shortCode.value}-qr.png` // Custom file name
+    link.download = `${shortCodes.value[0]}-qr.png` // Custom file name
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -55,50 +53,55 @@ function downloadQR() {
 async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
     isLoading.value = true
     success.value = false
-    shortUrl.value = ''
     statsUrl.value = ''
-    shortCode.value = ''
+    shortCodes.value = []
 
-    try {
-        const response = await $fetch('/api/shorten', {
-            method: 'POST',
-            body: {
-                longUrl: state.longUrl,
-                customCode: state.customCode,
-            }
-        })
-
-        shortCode.value = response.shortCode
-        shortUrl.value = `${origin.value}/${shortCode.value}`
-        qrDataUrl.value = await generateQR(shortUrl.value)
-        statsUrl.value = `${origin.value}/stats/${shortCode.value}`
-        success.value = true
-
-    } catch (error) {
-        console.error('Error shortening URL:', error)
-
-        match(error)
-            .with(P.shape({ statusCode: 409 }), () => {
-                toast.add({
-                    title: 'Custom code unavailable',
-                    description: 'This custom code is already in use. Please try another one.',
-                    color: 'error',
-                    duration: 3000
+    const response = await $fetch('/api/shorten', {
+        method: 'POST',
+        body: {
+            longUrl: state.longUrl,
+            customCode: state.customCode,
+        },
+        onResponseError: ({ response }) => {
+            const responseData = response._data
+            match(responseData)
+                .with({ statusCode: 409, data: { errorCode: TOO_MANY_SHORTENED_URLS } }, () => {
+                    toast.add({
+                        title: 'Custom code unavailable',
+                        description: 'Short URLs limit reached for this URL.',
+                        color: 'error',
+                        duration: 3000
+                    })
                 })
-            })
-            .with(P.instanceOf(Error), () => {
-                toast.add({
-                    title: 'Error',
-                    description: 'An unexpected error occurred. Please try again.',
-                    color: 'error',
-                    duration: 3000
+                .with({ statusCode: 409 }, () => {
+                    toast.add({
+                        title: 'Custom code unavailable',
+                        description: 'This custom code is already in use. Please try another one.',
+                        color: 'error',
+                        duration: 3000
+                    })
                 })
-            })
+                .with(P.instanceOf(Error), () => {
+                    toast.add({
+                        title: 'Error',
+                        description: 'An unexpected error occurred. Please try again.',
+                        color: 'error',
+                        duration: 3000
+                    })
+                })
 
-        resetForm()
-    } finally {
-        isLoading.value = false
-    }
+            isLoading.value = false
+            resetForm()
+        }
+    })
+
+    shortCodes.value = response.map(r => r.shortCode)
+    shortUrls.value = shortCodes.value.map(sc => `${origin.value}/${sc}`)
+    qrDataUrl.value = await generateQR(shortUrls.value[0])
+    statsUrl.value = `${origin.value}/stats/${shortCodes.value[0]}`
+    success.value = true
+
+    isLoading.value = false
 }
 </script>
 
@@ -126,61 +129,55 @@ async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
         <UButton class="w-full" type="submit" :loading="isLoading" :disabled="isLoading">
             {{ isLoading ? 'Shortening...' : 'Shorten URL' }}
         </UButton>
+    </UForm>
 
-        <!-- Display shortened URL and stats link -->
-        <UCard v-if="success" class="mt-6">
-            <div class="flex flex-col gap-4">
-                <div>
-                    <h3 class="text-lg font-medium">Your shortened URL:</h3>
+    <!-- Display shortened URL and stats link -->
+    <UCard v-if="success" class="mt-6">
+        <div class="flex flex-col gap-4">
+            <div>
+                <h3 class="text-lg font-medium">Your shortened URL:</h3>
+                <div v-for="shortUrl in shortUrls">
                     <div class="flex w-full mt-2">
-                        <UInput class="flex-grow" readonly v-model="shortUrl" :ui="{ trailing: 'pr-0.5' }">
-                            <template #trailing>
-                                <UTooltip text="Copy to clipboard" :content="{ side: 'right' }">
-                                    <UButton :color="copied ? 'success' : 'neutral'" variant="link" size="sm"
-                                        :icon="copied ? 'i-lucide-copy-check' : 'i-lucide-copy'"
-                                        aria-label="Copy to clipboard" @click="copy(shortUrl)" />
-                                </UTooltip>
-                            </template>
-                        </UInput>
+                        <ShortenResult :url="shortUrl" />
                     </div>
                 </div>
 
-                <div class="flex gap-1">
-                    <UButton icon="i-lucide-external-link" size="md" class="w-fit" :to="shortUrl" :external="true"
-                        target="_blank" />
-                    <UPopover :content="{ align: 'center', side: 'bottom', sideOffset: 8 }" arrow>
-                        <UButton icon="i-lucide-qr-code" size="md" class="w-fit">
-                            QR
-                        </UButton>
-
-                        <template #content>
-                            <div class="flex flex-col items-center gap-2 p-2">
-                                <NuxtImg width="110px" height="110px" :src="qrDataUrl" alt="QR Code to shortened URL" />
-                                <UButton size="sm" icon="i-lucide-download" class="w-full" @click="downloadQR">
-                                    Download
-                                </UButton>
-                            </div>
-                        </template>
-                    </UPopover>
-
-                    <!-- Social share -->
-                    <UDropdownMenu :content="{ align: 'center', side: 'bottom', sideOffset: 8 }" arrow
-                        :items="socialItems">
-                        <UButton icon="i-lucide-share-2" size="md" class="w-fit">
-                            Share
-                        </UButton>
-                    </UDropdownMenu>
-                </div>
-
-                <div class="flex gap-2 mt-2">
-                    <UButton to="/" color="primary" variant="outline" block @click="success = false; resetForm()">
-                        Shorten Another
-                    </UButton>
-                    <UButton :to="statsUrl" color="primary" block>
-                        View Stats
-                    </UButton>
-                </div>
             </div>
-        </UCard>
-    </UForm>
+
+            <div class="flex gap-1">
+                <UButton icon="i-lucide-external-link" size="md" class="w-fit" :to="shortUrls[0]" :external="true"
+                    target="_blank" />
+                <UPopover :content="{ align: 'center', side: 'bottom', sideOffset: 8 }" arrow>
+                    <UButton icon="i-lucide-qr-code" size="md" class="w-fit">
+                        QR
+                    </UButton>
+
+                    <template #content>
+                        <div class="flex flex-col items-center gap-2 p-2">
+                            <NuxtImg width="110px" height="110px" :src="qrDataUrl" alt="QR Code to shortened URL" />
+                            <UButton size="sm" icon="i-lucide-download" class="w-full" @click="downloadQR">
+                                Download
+                            </UButton>
+                        </div>
+                    </template>
+                </UPopover>
+
+                <!-- Social share -->
+                <UDropdownMenu :content="{ align: 'center', side: 'bottom', sideOffset: 8 }" arrow :items="socialItems">
+                    <UButton icon="i-lucide-share-2" size="md" class="w-fit">
+                        Share
+                    </UButton>
+                </UDropdownMenu>
+            </div>
+
+            <div class="flex gap-2 mt-2">
+                <UButton to="/" color="primary" variant="outline" block @click="success = false; resetForm()">
+                    Shorten Another
+                </UButton>
+                <UButton :to="statsUrl" color="primary" block>
+                    View Stats
+                </UButton>
+            </div>
+        </div>
+    </UCard>
 </template>

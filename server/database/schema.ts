@@ -10,10 +10,12 @@ export const url = sqliteTable(
 		createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
 		updatedAt: integer("updatedAt", { mode: "timestamp" }).notNull(),
 		expiresAt: integer("expiresAt", { mode: "timestamp" }),
+		userId: text("userId").references(() => user.id),
 	},
 	(t) => [
 		index("longUrl_idx").on(t.longUrl),
 		index("shortCode_idx").on(t.shortCode),
+		index("userId_idx").on(t.userId),
 	],
 );
 

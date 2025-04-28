@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, anonymous } from "better-auth/plugins";
+import type { EventHandler, H3Event } from "h3";
 
 let _auth: ReturnType<typeof betterAuth>;
 export function serverAuth() {
@@ -51,3 +52,23 @@ function getBaseURL() {
 	}
 	return baseURL;
 }
+
+/**
+ * Middleware used to require authentication for a route.
+ *
+ * Can be extended to check for specific roles or permissions.
+ */
+export const requireAuth: EventHandler = async (event: H3Event) => {
+	const headers = event.headers;
+
+	const session = await serverAuth().api.getSession({
+		headers: headers,
+	});
+	if (!session)
+		throw createError({
+			statusCode: 401,
+			statusMessage: "Unauthorized",
+		});
+	// You can save the session to the event context for later use
+	event.context.auth = session;
+};

@@ -11,5 +11,6 @@ export function useDrizzle() {
 }
 
 export type Url = typeof schema.url.$inferSelect;
+export type UrlInsert = typeof schema.url.$inferInsert;
 
 export type D1 = ReturnType<typeof useDrizzle>;
