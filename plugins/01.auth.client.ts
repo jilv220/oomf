@@ -15,7 +15,6 @@ export default defineNuxtPlugin({
 			if (!userSession?.session.token) {
 				const { signIn } = useAuth();
 				await signIn.anonymous();
-				console.log("wut");
 			}
 		}
 	},

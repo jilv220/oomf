@@ -16,6 +16,11 @@ export default defineNuxtConfig({
 	hub: {
 		database: true,
 		kv: true,
+		bindings: {
+			observability: {
+				logs: true,
+			},
+		},
 	},
 	vite: {
 		plugins: [tailwindcss()],
