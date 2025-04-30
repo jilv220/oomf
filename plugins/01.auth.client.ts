@@ -10,12 +10,12 @@ export default defineNuxtPlugin({
 			nuxtApp.hook("app:mounted", async () => {
 				await useAuth().fetchSession();
 			});
-		} else if (import.meta.client) {
-			const userSession = await useAuth().fetchSession();
-			if (!userSession?.session.token) {
-				const { signIn } = useAuth();
-				await signIn.anonymous();
-			}
+		}
+
+		const userSession = await useAuth().fetchSession();
+		if (!userSession?.session.token) {
+			const { signIn } = useAuth();
+			await signIn.anonymous();
 		}
 	},
 });
