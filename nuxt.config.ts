@@ -2,7 +2,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-	compatibilityDate: "2024-09-19",
+	compatibilityDate: "2024-09-18",
 	modules: ["@nuxt/ui", "@nuxthub/core", "@nuxt/image"],
 	css: ["~/assets/css/main.css"],
 	ui: {
@@ -28,7 +28,7 @@ export default defineNuxtConfig({
 	nitro: {
 		// https://nuxt.com/deploy/cloudflare#route-matching
 		prerender: {
-			crawlLinks: true,
+			crawlLinks: false,
 			autoSubfolderIndex: false,
 		},
 	},
