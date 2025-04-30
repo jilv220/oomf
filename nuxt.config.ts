@@ -28,7 +28,7 @@ export default defineNuxtConfig({
 	nitro: {
 		// https://nuxt.com/deploy/cloudflare#route-matching
 		prerender: {
-			crawlLinks: false,
+			crawlLinks: true,
 			autoSubfolderIndex: false,
 		},
 	},
