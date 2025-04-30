@@ -13,9 +13,8 @@ export const url = sqliteTable(
 		userId: text("userId").references(() => user.id),
 	},
 	(t) => [
-		index("longUrl_idx").on(t.longUrl),
 		index("shortCode_idx").on(t.shortCode),
-		index("userId_idx").on(t.userId),
+		index("user_longUrl_idx").on(t.longUrl, t.userId),
 	],
 );
 

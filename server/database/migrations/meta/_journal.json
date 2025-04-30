@@ -43,6 +43,13 @@
       "when": 1745805241379,
       "tag": "0005_awesome_tigra",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1745982713338,
+      "tag": "0006_robust_slapstick",
+      "breakpoints": true
     }
   ]
 }

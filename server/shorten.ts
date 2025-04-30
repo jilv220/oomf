@@ -1,4 +1,24 @@
-import type { UrlInsert } from "./utils/drizzle";
+import { createHash } from "node:crypto";
+import { z } from "zod";
+import type { Url, UrlInsert } from "./utils/drizzle";
+
+const getExistingUrls = async (userId: string, longUrl: string) => {
+	const cacheKey = `urls:${userId}:${longUrl}`;
+	const kv = hubKV();
+	const cached = await kv.get<Url[]>(cacheKey);
+	if (cached) {
+		return cached;
+	}
+
+	const db = useDrizzle();
+	const existingUrls = await db.query.url.findMany({
+		where: (url, { eq, and }) =>
+			and(eq(url.longUrl, longUrl), eq(url.userId, userId)),
+	});
+
+	await kv.set(cacheKey, existingUrls, { ttl: 3600 });
+	return existingUrls;
+};
 
 const getExpirationDate = (
 	createdAt: Date,
@@ -33,30 +53,42 @@ const insertUrl = async (
 		})
 		.returning();
 
+	if (userId) {
+		await Shorten.invalidateCache(userId, longUrl);
+	}
+
 	return newUrl;
 };
 
-async function generateUniqueShortCode(): Promise<string> {
-	let shortCode: string;
-	let isUnique = false;
-	let i = 0;
+async function invalidateCache(userId: string, longUrl: string) {
+	const cacheKey = `urls:${userId}:${longUrl}`;
+	const kv = hubKV();
+	await kv.del(cacheKey);
+}
 
-	const db = useDrizzle();
-	do {
-		shortCode = generateTimestampedRandomCode();
-		const existing = await db.query.url.findFirst({
-			where: (url, { eq }) => eq(url.shortCode, shortCode),
-		});
+async function generateUniqueShortCode(
+	userId: string,
+	longUrl: string,
+): Promise<string> {
+	const hash = createHash("sha256")
+		.update(`${userId}:${longUrl}`)
+		.digest("hex");
 
-		isUnique = !existing;
-		i++;
-	} while (!isUnique && i < 5);
+	const { data: shortCodeLength } = z
+		.number()
+		.int()
+		.safeParse(process.env.APP_SHORT_CODE_LENGTH);
 
-	return shortCode;
+	return encodeBase62(Number.parseInt(hash.slice(0, 8), 16)).slice(
+		0,
+		shortCodeLength || 6,
+	);
 }
 
 export const Shorten = {
+	getExistingUrls,
 	getExpirationDate,
 	generateUniqueShortCode,
 	insertUrl,
+	invalidateCache,
 } as const;

@@ -91,7 +91,7 @@ async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
                 })
 
             isLoading.value = false
-            resetForm()
+            // resetForm()
         }
     })
 

@@ -16,7 +16,7 @@ export default defineEventHandler({
 
 		if (parsedBody.error) {
 			throw createError({
-				statusCode: 422,
+				statusCode: 400,
 				message: JSON.stringify(parsedBody.error.format()),
 			});
 		}
@@ -26,11 +26,7 @@ export default defineEventHandler({
 		const user: User = event.context.auth.user;
 		const userId = user.id;
 
-		const existingUrls = await db.query.url.findMany({
-			where: (url, { eq, and }) =>
-				and(eq(url.longUrl, longUrl), eq(url.userId, userId)),
-		});
-
+		const existingUrls = await Shorten.getExistingUrls(userId, longUrl);
 		const res = await match([existingUrls.length !== 0, customCode])
 			.when(
 				([eu, cc]) => eu && !cc,
@@ -45,7 +41,10 @@ export default defineEventHandler({
 			.when(
 				([eu, cc]) => !eu && !cc,
 				async () => {
-					const shortCode = await Shorten.generateUniqueShortCode();
+					const shortCode = await Shorten.generateUniqueShortCode(
+						userId,
+						longUrl,
+					);
 					const newUrl = await Shorten.insertUrl(
 						{
 							longUrl,
