@@ -12,7 +12,7 @@ export default defineNuxtPlugin({
 			});
 		} else if (import.meta.client) {
 			const userSession = await useAuth().fetchSession();
-			if (!userSession?.session.token) {
+			if (!userSession) {
 				const { signIn } = useAuth();
 				await signIn.anonymous();
 			}
