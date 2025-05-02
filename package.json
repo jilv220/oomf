@@ -39,7 +39,6 @@
     "drizzle-kit": "^0.31.0",
     "wrangler": "^4.9.1"
   },
-  "packageManager": "pnpm@10.8.0",
   "pnpm": {
     "onlyBuiltDependencies": [
       "sharp",
