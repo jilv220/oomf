@@ -1,5 +1,3 @@
-import { useDrizzle } from "../../utils/drizzle";
-
 export default defineEventHandler({
 	onRequest: [requireAuth],
 	handler: async (event) => {
@@ -7,7 +5,7 @@ export default defineEventHandler({
 
 		if (!shortCode) {
 			throw createError({
-				statusCode: 422,
+				statusCode: 400,
 				message: "Short code is required",
 			});
 		}

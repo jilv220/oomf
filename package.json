@@ -6,7 +6,7 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "preview": "nuxt preview",
+    "preview": "pnpm dlx nuxthub preview",
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate"
   },
@@ -37,6 +37,13 @@
     "@tailwindcss/typography": "^0.5.16",
     "@types/qrcode": "^1.5.5",
     "drizzle-kit": "^0.31.0",
-    "wrangler": "^4.13.0"
+    "wrangler": "^4.9.1"
+  },
+  "packageManager": "pnpm@10.8.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "workerd"
+    ]
   }
 }

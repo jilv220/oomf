@@ -2,7 +2,7 @@
 const route = useRoute();
 const shortCode = route.params.shortCode as string;
 const toast = useToast();
-const origin = ref(''); // Store the origin
+const origin = useOrigin();
 
 useHead({
     title: `Stats for ${shortCode}`,
@@ -11,14 +11,6 @@ useHead({
         { name: 'robots', content: 'noindex' },
     ],
 });
-
-// Determine origin based on environment (SSR or client-side)
-if (import.meta.client) {
-    origin.value = window.location.origin;
-} else {
-    const requestUrl = useRequestURL();
-    origin.value = requestUrl.origin;
-}
 
 const { data: url, error } = await useFetch(`/api/stats/${shortCode}`, {
     key: `stats-${shortCode}`,
@@ -83,8 +75,7 @@ async function copyUrl(url: string) {
                         <div class="flex flex-col">
                             <span class="text-sm text-gray-500 dark:text-gray-400">Short URL</span>
                             <div class="flex items-center mt-1">
-                                <ULink :to="`/${url.shortCode}`" target="_blank"
-                                    class="text-white hover:text-primary-400">
+                                <ULink :to="`/${url.shortCode}`" target="_blank" class="hover:text-primary-400">
                                     {{ origin }}/{{ url.shortCode }}
                                 </ULink>
                             </div>

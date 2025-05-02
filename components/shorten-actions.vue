@@ -11,8 +11,6 @@ interface Props {
 }
 const props = defineProps<Props>()
 
-const router = useRouter()
-
 const onShortUrlClicked = async () => {
     await navigateTo(props.shortUrl, {
         external: true,
