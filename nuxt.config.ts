@@ -32,7 +32,7 @@ export default defineNuxtConfig({
 			crawlLinks: true,
 			autoSubfolderIndex: false,
 		},
-		minify: false,
+		minify: true,
 	},
 	routeRules: {
 		"/": { prerender: true },
