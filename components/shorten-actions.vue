@@ -30,7 +30,7 @@ const onShortUrlClicked = async () => {
 <template>
     <div class="flex gap-1">
         <UButton icon="i-lucide-external-link" size="md" class="w-fit" :to="shortUrl" :external="true" target="_blank"
-            @click.capture="onShortUrlClicked" />
+            @click.prevent="onShortUrlClicked" />
 
         <UButton icon="i-lucide-chart-line" size="md" class="w-fit" :to="statsUrl" :external="true" target="_blank" />
 
