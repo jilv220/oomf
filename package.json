@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@nuxt/image": "^1.10.0",
-    "@nuxt/kit": "^3.16.2",
+    "@nuxt/kit": "^3.17.1",
     "@nuxt/ui": "3.1.0",
     "@nuxthub/core": "0.8.25",
     "@tailwindcss/vite": "^4.1.4",
@@ -20,7 +20,7 @@
     "better-auth": "^1.2.7",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.42.0",
-    "nuxt": "^3.16.2",
+    "nuxt": "^3.17.1",
     "qrcode": "^1.5.4",
     "remeda": "^2.21.3",
     "tailwindcss": "^4.1.4",

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { useClipboard } from '@vueuse/core';
 import { formatDistanceToNow } from 'date-fns';
 import type { Url } from '~/server/utils/drizzle';
 
@@ -10,7 +9,6 @@ const props = defineProps<{
         expiresAt: string | null
     }
 }>()
-
 
 const shortUrl = ref(`${props.origin}/${props.url.shortCode}`)
 const statsUrl = ref(`${props.origin}/stats/${props.url.shortCode}`)

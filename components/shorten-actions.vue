@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
+import { sleep } from '~/shared/sleep';
 
 interface Props {
     shortUrl: string
@@ -8,14 +9,28 @@ interface Props {
     socialItems: DropdownMenuItem[]
     downloadQR: () => void
 }
+const props = defineProps<Props>()
 
-defineProps<Props>()
+const router = useRouter()
+
+const onShortUrlClicked = async () => {
+    await navigateTo(props.shortUrl, {
+        external: true,
+        open: {
+            target: "_blank"
+        }
+    })
+
+    // bruh...
+    await sleep(500)
+    await refreshNuxtData("url-history")
+}
 </script>
 
 <template>
     <div class="flex gap-1">
-        <UButton icon="i-lucide-external-link" size="md" class="w-fit" :to="shortUrl" :external="true"
-            target="_blank" />
+        <UButton icon="i-lucide-external-link" size="md" class="w-fit" :to="shortUrl" :external="true" target="_blank"
+            @click.capture="onShortUrlClicked" />
 
         <UButton icon="i-lucide-chart-line" size="md" class="w-fit" :to="statsUrl" :external="true" target="_blank" />
 

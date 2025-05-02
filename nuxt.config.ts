@@ -28,8 +28,10 @@ export default defineNuxtConfig({
 	nitro: {
 		// https://nuxt.com/deploy/cloudflare#route-matching
 		prerender: {
-			crawlLinks: true,
 			autoSubfolderIndex: false,
 		},
+	},
+	routeRules: {
+		"/": { prerender: true },
 	},
 });

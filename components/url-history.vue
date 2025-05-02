@@ -2,19 +2,20 @@
 const page = ref(1);
 const origin = useOrigin();
 
-const { data } = useFetch('/api/shorten', {
+const { data, refresh } = await useFetch('/api/shorten', {
     query: { page, limit: 4 },
     lazy: true,
     server: false,
-    key: "url-history"
+    key: "url-history",
 });
 
 const onPageChange = (newPage: number) => {
     page.value = newPage;
 };
 
-const onDrawerOpen = () => {
+const onDrawerClose = () => {
     page.value = 1
+    refresh()
 }
 
 </script>
@@ -22,7 +23,7 @@ const onDrawerOpen = () => {
 <template>
     <UDrawer :ui="{
         body: 'min-w-[40svw]'
-    }" direction="right" :handle="false" :handle-only="true" title="Your Recent Shortens" @update:open="onDrawerOpen">
+    }" direction="right" :handle="false" :handle-only="true" title="Your Recent Shortens" @close="onDrawerClose">
         <UButton color="neutral" variant="ghost">
             My URLs
         </UButton>
@@ -39,7 +40,7 @@ const onDrawerOpen = () => {
             </div>
 
             <div v-if="data && data.pagination.totalPages > 1" class="p-4 justify-items-center">
-                <UPagination v-model="page" :page-count="data.pagination.totalPages" :total="data.pagination.total"
+                <UPagination v-model:page="page" :items-per-page="data.pagination.limit" :total="data.pagination.total"
                     :ui="{ wrapper: 'flex justify-center' }" @update:page="onPageChange" />
             </div>
         </template>
