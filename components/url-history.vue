@@ -5,6 +5,7 @@ const origin = useOrigin();
 const { data } = useFetch('/api/shorten', {
     query: { page, limit: 4 },
     lazy: true,
+    server: false,
     key: "url-history"
 });
 
