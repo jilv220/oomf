@@ -106,7 +106,7 @@ useHead({
 
                         <h4>What’s up with my data?</h4>
                         <ul>
-                            <li>We only store click counts, no selling your info, anon.</li>
+                            <li>We only store click counts, no selling your info.</li>
                         </ul>
                     </article>
                 </UCard>

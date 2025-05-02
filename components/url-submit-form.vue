@@ -19,7 +19,6 @@ const origin = useOrigin()
 const shortUrls = ref<Array<string>>([])
 
 const statsUrl = ref('')
-const qrDataUrl = ref('')
 const success = ref(false)
 
 const popupOptions = 'width=600,height=400,toolbar=no,menubar=no,scrollbars=yes,resizable=yes'
@@ -35,19 +34,14 @@ const resetForm = () => {
     qrDataUrl.value = ''
     shortCodes.value = []
     success.value = false
+
+    window.scrollTo({ top: 0, left: 0 })
 }
 
-// Download QR code with custom file name
-function downloadQR() {
-    if (!qrDataUrl.value || shortCodes.value.length === 0) return
-
-    const link = document.createElement('a')
-    link.href = qrDataUrl.value
-    link.download = `${shortCodes.value[0]}-qr.png` // Custom file name
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-}
+const { qrDataUrl, downloadQR } =
+    await useQR(toRef(() => shortUrls.value.length > 0 ? shortUrls.value[0] : ""),
+        toRef(() => `${shortCodes.value[0]}-qr.png`)
+    )
 
 // Submit form to create short URL
 async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
@@ -102,6 +96,7 @@ async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
     success.value = true
 
     isLoading.value = false
+    refreshNuxtData("url-history")
 }
 </script>
 
@@ -119,14 +114,14 @@ async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
             </UButton>
 
             <template #content>
-                <UFormField class="w-full" :ui="{ help: 'text-xs' }" label="Custom code (optional)" name="customCode"
-                    help="Use only letters, numbers, hyphens and underscores">
+                <UFormField class="w-full" :ui="{ help: 'text-xs text-gray-500' }" label="Custom code (optional)"
+                    name="customCode" help="Use only letters, numbers, hyphens and underscores">
                     <UInput class="w-full mt-2" v-model="state.customCode" placeholder="my-custom-code" />
                 </UFormField>
             </template>
         </UCollapsible>
 
-        <UButton class="w-full" type="submit" :loading="isLoading" :disabled="isLoading">
+        <UButton block size="xl" type="submit" :loading="isLoading" :disabled="isLoading">
             {{ isLoading ? 'Shortening...' : 'Shorten URL' }}
         </UButton>
     </UForm>
@@ -141,41 +136,13 @@ async function onSubmit(event: FormSubmitEvent<ShortenForm>) {
                         <ShortenResult :url="shortUrl" />
                     </div>
                 </div>
-
             </div>
-
-            <div class="flex gap-1">
-                <UButton icon="i-lucide-external-link" size="md" class="w-fit" :to="shortUrls[0]" :external="true"
-                    target="_blank" />
-                <UPopover :content="{ align: 'center', side: 'bottom', sideOffset: 8 }" arrow>
-                    <UButton icon="i-lucide-qr-code" size="md" class="w-fit">
-                        QR
-                    </UButton>
-
-                    <template #content>
-                        <div class="flex flex-col items-center gap-2 p-2">
-                            <NuxtImg width="110px" height="110px" :src="qrDataUrl" alt="QR Code to shortened URL" />
-                            <UButton size="sm" icon="i-lucide-download" class="w-full" @click="downloadQR">
-                                Download
-                            </UButton>
-                        </div>
-                    </template>
-                </UPopover>
-
-                <!-- Social share -->
-                <UDropdownMenu :content="{ align: 'center', side: 'bottom', sideOffset: 8 }" arrow :items="socialItems">
-                    <UButton icon="i-lucide-share-2" size="md" class="w-fit">
-                        Share
-                    </UButton>
-                </UDropdownMenu>
-            </div>
+            <ShortenActions :short-url="shortUrls[0]" :stats-url="statsUrl" :qr-data-url="qrDataUrl"
+                :social-items="socialItems" :download-q-r="downloadQR" />
 
             <div class="flex gap-2 mt-2">
-                <UButton to="/" color="primary" variant="outline" block @click="success = false; resetForm()">
+                <UButton to="/" block size="xl" @click="success = false; resetForm()">
                     Shorten Another
-                </UButton>
-                <UButton :to="statsUrl" color="primary" block>
-                    View Stats
                 </UButton>
             </div>
         </div>
