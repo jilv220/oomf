@@ -19,8 +19,9 @@ const onDrawerOpen = () => {
 </script>
 
 <template>
-    <UDrawer direction="right" :handle="false" :handle-only="true" title="Your Recent Shortens"
-        @update:open="onDrawerOpen">
+    <UDrawer :ui="{
+        body: 'min-w-[40svw]'
+    }" direction="right" :handle="false" :handle-only="true" title="Your Recent Shortens" @update:open="onDrawerOpen">
         <UButton color="neutral" variant="ghost">
             My URLs
         </UButton>
