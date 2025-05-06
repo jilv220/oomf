@@ -16,7 +16,7 @@ const getExistingUrls = async (userId: string, longUrl: string) => {
 			and(eq(url.longUrl, longUrl), eq(url.userId, userId)),
 	});
 
-	await kv.set(cacheKey, existingUrls, { ttl: 3600 });
+	await kv.set(cacheKey, existingUrls, { ttl: 24 * 60 * 60 });
 	return existingUrls;
 };
 
